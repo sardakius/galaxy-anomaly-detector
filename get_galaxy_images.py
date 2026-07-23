@@ -34,25 +34,32 @@ anomalous_mask = [
     (gal_merger['CNN pred'] > 0.90)
 ][0]
 
+unknown_mask = [
+    (gal_merger['CNN classification'] == -99)
+][0]
+
 normal_galaxies = gal_merger[normal_mask]
 anomalous_galaxies = gal_merger[anomalous_mask]
+unknown_galaxies = gal_merger[unknown_mask]
 
 print(f"{len(normal_galaxies)} normal galaxies found of {len(gal_merger)} total!")
 print(f"{len(anomalous_galaxies)} anomalous galaxies found of {len(gal_merger)} total!")
+print(f"{len(unknown_galaxies)} unknown galaxies found of {len(gal_merger)} total!")
+
+
 
 search_radius = 0.5/60
 count = 1
 cutouts = []
 
-while count < 11:
+for gal in anomalous_galaxies:
     try:
-        gal = anomalous_galaxies[count-1]
         print(gal['CNN pred'], gal['CNN classification'])
 
         ra = gal['right_ascension']
         dec = gal['declination']
 
-        if not os.path.isfile(f'proof of concept/poc_testing/anomalous/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png'):
+        if not os.path.isfile(f'anomalous galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png'):
             print(f"Getting anomalous galaxy #{count} @ RA: {ra*u.deg}, Dec: {dec*u.deg}")
             
             coords = SkyCoord(ra=ra*u.deg, dec=dec*u.deg, frame='icrs')
@@ -78,12 +85,12 @@ while count < 11:
             fig.add_axes(ax)
             
             plt.imshow(image_data, cmap='gray', origin='lower', norm=ImageNormalize(image_data, interval=PercentileInterval(98), stretch=LinearStretch()))
-            plt.savefig(f'proof of concept/poc_testing/anomalous/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png', bbox_inches='tight', pad_inches=0, dpi=300)
+            plt.savefig(f'anomalous galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png', bbox_inches='tight', pad_inches=0, dpi=300)
             plt.close()
 
-            print(f"Galaxy #{count} saved to proof of concept/poc_testing/anomalous/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png!")
+            print(f"Galaxy #{count} saved to anomalous galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png!")
 
-            #sleep(2 + 2*np.random.random_sample(1)[0])  # Sleep for 1 second to avoid overwhelming the server
+            sleep(2 + np.random.random_sample(1)[0])  # Sleep for 1 second to avoid overwhelming the server
             count += 1
     except Exception as e:
         print(f"Error getting galaxy #{count} @ RA: {ra*u.deg}, Dec: {dec*u.deg}: {e}")
