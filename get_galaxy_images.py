@@ -61,7 +61,7 @@ for gal in anomalous_galaxies:
 
         if not os.path.isfile(f'anomalous galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png'):
             print(f"Getting anomalous galaxy #{count} @ RA: {ra*u.deg}, Dec: {dec*u.deg}")
-            
+
             coords = SkyCoord(ra=ra*u.deg, dec=dec*u.deg, frame='icrs')
             query = f"""
             SELECT *
@@ -102,7 +102,7 @@ end_time = time()
 elapsed_time = end_time - start_time
 print(f"Total time taken to save all images: {sec_to_hms(elapsed_time)}")
 
-hdul  = fits.open(cutouts[0][0])
+hdul  = fits.open('gal.fits')
 image_data = hdul[0].data
 
 plt.figure()
