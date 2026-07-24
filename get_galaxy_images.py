@@ -52,15 +52,15 @@ search_radius = 0.5/60
 count = 1
 cutouts = []
 
-for gal in anomalous_galaxies:
+for gal in normal_galaxies:
     try:
         print(gal['CNN pred'], gal['CNN classification'])
 
         ra = gal['right_ascension']
         dec = gal['declination']
 
-        if not os.path.isfile(f'anomalous galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png'):
-            print(f"Getting anomalous galaxy #{count} @ RA: {ra*u.deg}, Dec: {dec*u.deg}")
+        if not os.path.isfile(f'normal galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png'):
+            print(f"Getting normal galaxy #{count} @ RA: {ra*u.deg}, Dec: {dec*u.deg}")
 
             coords = SkyCoord(ra=ra*u.deg, dec=dec*u.deg, frame='icrs')
             query = f"""
@@ -85,12 +85,12 @@ for gal in anomalous_galaxies:
             fig.add_axes(ax)
             
             plt.imshow(image_data, cmap='gray', origin='lower', norm=ImageNormalize(image_data, interval=PercentileInterval(98), stretch=LinearStretch()))
-            plt.savefig(f'anomalous galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png', bbox_inches='tight', pad_inches=0, dpi=300)
+            plt.savefig(f'normal galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png', bbox_inches='tight', pad_inches=0, dpi=300)
             plt.close()
 
-            print(f"Galaxy #{count} saved to anomalous galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png!")
+            print(f"Galaxy #{count} saved to normal galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png!")
 
-            sleep(2 + np.random.random_sample(1)[0])  # Sleep for 1 second to avoid overwhelming the server
+            sleep(2 + np.random.random_sample(1)[0])  # Sleep for 2-3 seconds avoid overwhelming the server
             count += 1
     except Exception as e:
         print(f"Error getting galaxy #{count} @ RA: {ra*u.deg}, Dec: {dec*u.deg}: {e}")
