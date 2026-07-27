@@ -7,8 +7,8 @@ from n2v.models import N2V, N2VConfig
 # Directories
 # =====================================================
 
-train_dir = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/raw/anomalous galaxies"
-output_dir = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/noise2void/anomalous galaxies"
+train_dir = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/raw/unknown galaxies"
+output_dir = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/noise2void/unknown galaxies"
 model_dir = "models"
 model_name = "euclid_n2v"
 
