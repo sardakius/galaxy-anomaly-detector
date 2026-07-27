@@ -7,8 +7,8 @@ from n2v.models import N2V, N2VConfig
 # Directories
 # =====================================================
 
-train_dir = "raw/normal galaxies"
-output_dir = "noise2void/normal galaxies"
+train_dir = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/raw/normal galaxies"
+output_dir = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/noise2void/normal galaxies"
 model_dir = "models"
 model_name = "euclid_n2v"
 
@@ -83,30 +83,31 @@ print("Training complete.")
 # =====================================================
 
 for filename in filenames:
+    if filename.lower().endswith(".png"):
+        print(f"Processing {filename}")
+        img = imread(os.path.join(train_dir, filename))
 
-    img = imread(os.path.join(train_dir, filename))
+        if img.ndim == 3:
+            img = img[..., 0]
 
-    if img.ndim == 3:
-        img = img[..., 0]
+        img = img.astype(np.float32)
 
-    img = img.astype(np.float32)
+        img -= img.min()
+        img /= (img.max() + 1e-8)
 
-    img -= img.min()
-    img /= (img.max() + 1e-8)
+        prediction = model.predict(
+            img[..., np.newaxis],
+            axes="YXC"
+        )
 
-    prediction = model.predict(
-        img[..., np.newaxis],
-        axes="YXC"
-    )
+        prediction = np.squeeze(prediction)
 
-    prediction = np.squeeze(prediction)
+        # Save back as 8-bit PNG
+        prediction = (prediction * 255).clip(0, 255).astype(np.uint8)
 
-    # Save back as 8-bit PNG
-    prediction = (prediction * 255).clip(0, 255).astype(np.uint8)
-
-    imsave(
-        os.path.join(output_dir, filename),
-        prediction
-    )
+        imsave(
+            os.path.join(output_dir, filename),
+            prediction
+        )
 
 print("Done!")

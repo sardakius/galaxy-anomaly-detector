@@ -4,7 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-folder = "raw/anomalous galaxies"
+folder = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/raw/anomalous galaxies"
 wavelet_folder = "visu wavelet/anomalous galaxies"
 
 for filename in os.listdir(folder):
