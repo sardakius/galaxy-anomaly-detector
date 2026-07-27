@@ -47,18 +47,20 @@ print(f"{len(anomalous_galaxies)} anomalous galaxies found of {len(gal_merger)} 
 print(f"{len(unknown_galaxies)} unknown galaxies found of {len(gal_merger)} total!")
 
 search_radius = 0.5/60
+gal_count = 1
 count = 1
 cutouts = []
 
-for gal in anomalous_galaxies:
+while count < 3001:
     try:
+        gal = unknown_galaxies[gal_count-1]
         print(gal['CNN pred'], gal['CNN classification'])
 
         ra = gal['right_ascension']
         dec = gal['declination']
 
-        if not os.path.isfile(f'anomalous galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png'):
-            print(f"Getting anomalous galaxy #{count} @ RA: {ra*u.deg}, Dec: {dec*u.deg}")
+        if not os.path.isfile(f'raw/unknown galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png'):
+            print(f"Getting unknown galaxy #{count} @ RA: {ra*u.deg}, Dec: {dec*u.deg}")
 
             coords = SkyCoord(ra=ra*u.deg, dec=dec*u.deg, frame='icrs')
             query = f"""
@@ -83,13 +85,15 @@ for gal in anomalous_galaxies:
             fig.add_axes(ax)
             
             plt.imshow(image_data, cmap='gray', origin='lower', norm=ImageNormalize(image_data, interval=PercentileInterval(98), stretch=LinearStretch()))
-            plt.savefig(f'anomalous galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png', bbox_inches='tight', pad_inches=0, dpi=300)
+            plt.savefig(f'raw/unknown galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png', bbox_inches='tight', pad_inches=0, dpi=300)
             plt.close()
 
-            print(f"Galaxy #{count} saved to anomalous galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png!")
-
-            sleep(1 + np.random.random_sample(1)[0])  # Sleep for 1-2 seconds avoid overwhelming the server
+            print(f"Galaxy #{count} saved to raw/unknown galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png!")
+            
             count += 1
+            sleep(1 + np.random.random_sample(1)[0])  # Sleep for 1-2 seconds avoid overwhelming the server    except Exception as e:
+       
+        gal_count += 1
     except Exception as e:
         print(f"Error getting galaxy #{count} @ RA: {ra*u.deg}, Dec: {dec*u.deg}: {e}")
         print("Sleeping for 1:30 before continuing...")

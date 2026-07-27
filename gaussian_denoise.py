@@ -7,9 +7,9 @@ from astropy.visualization import ImageNormalize, PercentileInterval, LinearStre
 from PIL import Image
 import os
 
-folder = "raw/anomalous galaxies"
-half_sigma_folder = "gaussian0_5/anomalous galaxies"
-full_sigma_folder = "gaussian1/anomalous galaxies"
+folder = "raw/unknown galaxies"
+half_sigma_folder = "gaussian0_5/unknown galaxies"
+full_sigma_folder = "gaussian1/unknown galaxies"
 
 for filename in os.listdir(folder):
     if filename.lower().endswith(".png") and not os.path.isfile(os.path.join(half_sigma_folder, filename)) and not os.path.isfile(os.path.join(full_sigma_folder, filename)):

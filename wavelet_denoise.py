@@ -4,8 +4,8 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-folder = "raw/anomalous galaxies"
-wavelet_folder = "wavelet/anomalous galaxies"
+folder = "raw/unknown galaxies"
+wavelet_folder = "wavelet/unknown galaxies"
 
 for filename in os.listdir(folder):
     if filename.lower().endswith(".png") and not os.path.isfile(os.path.join(wavelet_folder, filename)):
