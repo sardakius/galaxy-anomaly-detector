@@ -1,19 +1,18 @@
-# Scikit Imports
-from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, classification_report
-from sklearn.model_selection import train_test_split
-
 # TensorFlow Imports
 import tensorflow as tf
+import torch
 
-# Autoencoder
-from autoencoder import AnomalyDetector
-
-# Python
+# Image Control
 import os
 import glob
 from PIL import Image
+
+# Science 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import chisquare
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, classification_report
+from sklearn.model_selection import train_test_split
 
 IMG_SIZE = (80, 80)
 
@@ -80,3 +79,7 @@ def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''],
     plt.tight_layout()
     # plt.savefig(f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures/{figure_path}{title.replace(' ', '_').replace('(', '').replace(')', '')}.png")
     plt.show()
+
+def chi_squared_loss(actual, reconstructions):
+    actual[actual==0] = 1
+    return tf.reduce_mean((actual - reconstructions)**2/actual, axis=(1,2,3))

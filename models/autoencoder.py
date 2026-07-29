@@ -9,7 +9,7 @@ class AnomalyDetector(Model):
       layers.Flatten(),
       layers.Dense(1024, activation="relu"),
       layers.Dense(512, activation="relu"),
-      layers.Dense(100, activation="relu")
+      layers.Dense(256, activation="relu")
     ])
 
     self.decoder = tf.keras.Sequential([
