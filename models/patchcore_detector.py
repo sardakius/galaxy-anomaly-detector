@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore")
 if __name__ == "__main__":
     print("Anomalib libraries imported")
 
-    login(token='token')
+    login(token='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')
     print("Logged into Hugging Face!")
 
     datamodule = Folder(
