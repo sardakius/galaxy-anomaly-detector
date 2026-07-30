@@ -82,4 +82,5 @@ def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''],
 
 def chi_squared_loss(actual, reconstructions):
     actual[actual==0] = 1
-    return tf.reduce_mean(((actual - reconstructions)**2)/(actual/3.1), axis=(1,2,3))
+    chi_squared = (actual - reconstructions)**2/actual
+    return tf.reduce_sum(chi_squared, axis=(1,2,3))

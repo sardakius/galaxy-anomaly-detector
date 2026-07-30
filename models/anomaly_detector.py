@@ -15,14 +15,16 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, confu
 from sklearn.model_selection import train_test_split
 
 # Project Code
-from autoencoders import RegularizedAnomalyDetector, ConvolutionalAnomalyDetector
+from autoencoders import RegularizedAnomalyDetector, ConvolutionalAnomalyDetector, ContractiveAnomalyDetector
 from model_utils import load_images_from_folder, show_images, chi_squared_loss
 
-DATASET = "Raw"
-MODEL = "Regularized Autoencoder"
+DATASET = "Gaussian 2σ"
+MODEL = "Contractive Autoencoder"
 
 DATA_DIR = f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/{DATASET.lower().replace('.', '_')}"
 IMG_SIZE = (80, 80)
+
+RANDOM_STATE = 374
 
 EPOCHS = 20
 BATCH_SIZE = 100
@@ -46,11 +48,11 @@ if __name__ == "__main__":
     labels = np.eye(2)[labels_raw]
 
     data_train, data_test, labels_train, labels_test = train_test_split(
-        data, labels, test_size=0.2, random_state=42, stratify=labels_raw
+        data, labels, test_size=0.2, random_state=RANDOM_STATE, stratify=labels_raw
     )
 
     dpn_train, dpn_test, dpn_train_labels, dpn_test_labels = train_test_split(
-        data_pre_norm, labels, test_size=0.2, random_state=42, stratify=labels_raw
+        data_pre_norm, labels, test_size=0.2, random_state=RANDOM_STATE, stratify=labels_raw
     )
 
     data_train_normal = data_train[labels_train[:, 0] == 1]
@@ -81,13 +83,16 @@ if __name__ == "__main__":
 
     if MODEL == "Regularized Autoencoder":
         anomaly_detector = RegularizedAnomalyDetector()
+        anomaly_detector.compile(optimizer='adam', loss='mae', metrics=['mae'])
     elif MODEL == "Convolutional Autoencoder":
         anomaly_detector = ConvolutionalAnomalyDetector()
+        anomaly_detector.compile(optimizer='adam', loss='mae', metrics=['mae'])
+    elif MODEL == "Contractive Autoencoder":
+        anomaly_detector = ContractiveAnomalyDetector()
+        anomaly_detector.compile(optimizer='adam', loss=anomaly_detector.contractive_loss, metrics=['mae'])
     else:
         print("No valid model found.")
         quit()
-
-    anomaly_detector.compile(optimizer='adam', loss='mae', metrics=['mae'])
 
     history = anomaly_detector.fit(data_train_normal, data_train_normal,
         epochs=EPOCHS,
@@ -135,7 +140,7 @@ if __name__ == "__main__":
     
     plt.hist(train_loss, bins=int((train_loss.numpy().max() - train_loss.numpy().min())/BIN_WIDTH), alpha=0.6, label="Normal")
     plt.hist(anomalous_train_loss, bins=int((anomalous_train_loss.numpy().max() - anomalous_train_loss.numpy().min())/BIN_WIDTH), alpha=0.6, label="Anomaly")
-    plt.xlim(0, np.mean(anomalous_train_loss) + 2*np.std(anomalous_train_loss)) # keep things relatively in order
+    #plt.xlim(0, np.mean(anomalous_train_loss) + 2*np.std(anomalous_train_loss)) # keep things relatively in order
     plt.axvline(half_sigma_threshold, color="orange", linestyle="--",
                 label=f"0.5σ = {half_sigma_threshold:.4f}")
     plt.axvline(one_sigma_threshold, color="red", linestyle="--",

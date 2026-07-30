@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras import layers, Model
+from tensorflow.keras import layers, Model, backend as K
 
 from IPython import display
 
@@ -10,7 +10,7 @@ class RegularizedAnomalyDetector(Model):
       layers.Flatten(),
       layers.Dense(512, activation="relu"),
       layers.Dense(256, activation="relu"),
-      layers.Dense(64, activation="relu")
+      layers.Dense(16, activation="relu")
     ])
 
     self.decoder = tf.keras.Sequential([
@@ -28,49 +28,66 @@ class RegularizedAnomalyDetector(Model):
     return decoded
 
 class ConvolutionalAnomalyDetector(Model):
-  def __init__(self, latent_dim=64):
+  def __init__(self, latent_dim=4):
       super(ConvolutionalAnomalyDetector, self).__init__()
       self.latent_dim = latent_dim
 
       self.encoder = tf.keras.Sequential([
           layers.InputLayer(shape=(80,80,1)),
-          layers.Conv2D(filters=32, kernel_size=3, strides=(2, 2), activation='relu', padding='same'),
-          layers.Conv2D(filters=64, kernel_size=3, strides=(2, 2), activation='relu', padding='same'),
+          layers.Conv2D(filters=8, kernel_size=3, strides=2, activation='relu', padding='same'),
+          layers.Conv2D(filters=16, kernel_size=3, strides=2, activation='relu', padding='same'),
           layers.Flatten(),
           layers.Dense(self.latent_dim)
       ])
 
       self.decoder = tf.keras.Sequential([
           layers.InputLayer(input_shape=(self.latent_dim,)),
-          layers.Dense(20*20*64),
-          layers.Reshape((20, 20, 64)),
-          tf.keras.layers.Conv2DTranspose(filters=32, kernel_size=3, strides=2, padding='same', activation='relu'),
-          tf.keras.layers.Conv2DTranspose(filters=1, kernel_size=3, strides=2, padding='same', activation='relu'),
+          layers.Dense(20*20*16),
+          layers.Reshape((20, 20, 16)),
+          tf.keras.layers.Conv2DTranspose(filters=16, kernel_size=3, strides=2, padding='same', activation='relu'),
+          tf.keras.layers.Conv2DTranspose(filters=8, kernel_size=3, strides=2, padding='same', activation='relu'),
+          tf.keras.layers.Conv2DTranspose(filters=1, kernel_size=3, strides=1, padding='same', activation='relu'),
       ])
   def call(self, x):
     encoded = self.encoder(x)
     decoded = self.decoder(encoded)
     return decoded
-  # @tf.function
-  # def sample(self, eps=None):
-  #   if eps is None:
-  #     eps = tf.random.normal(shape=(100, self.latent_dim))
-  #   return self.decode(eps, apply_sigmoid=True)
 
-  # def encode(self, x):
-  #   mean, logvar = tf.split(self.encoder(X), num_or_size_splits=2, axis=1)
-  #   return mean, logvar
+class ContractiveAnomalyDetector(Model):
+  def __init__(self):
+    super(ContractiveAnomalyDetector, self).__init__()
 
-  # def reparameterize(self, mean, logvar):
-  #    eps = tf.random.normal(shape=mean.shape)
-  #    return eps * tf.exp(logvar/2) + mean
+    self.encoder = tf.keras.Sequential([
+      layers.Flatten(),
+      layers.Dense(64, activation='relu'),
+      layers.Dense(32, activation='relu'),
+      layers.Dense(16, activation='relu')
+    ])
 
-  # def decode(self, z, apply_sigmoid=False):
-  #    logits = self.decoder(z)
-  #    if apply_sigmoid:
-  #       probs = tf.sigmoid(logits)
-  #       return probs
-  #    return logits      
+    self.h = 0
 
-  # def fit(epochs=0, batch_size=0, )
+    self.decoder = tf.keras.Sequential([
+      layers.Dense(32, activation='relu'),
+      layers.Dense(64, activation='relu'),
+      layers.Dense(80*80*1, activation='relu'),
+      layers.Reshape((80, 80, 1))
+    ])
+
+  def call(self, x):
+    encoded = self.encoder(x)
+    self.h = encoded
+    decoded = self.decoder(encoded)
+    return decoded
+
+  def contractive_loss(self, y_true, y_pred):
+      lm = 1e-4
+      mae = K.mean(K.abs(y_true - y_pred), axis=1)
   
+      weights = self.get_layer('sequential_1').layers[-1].kernel
+      weights = K.transpose(weights)
+  
+      penalty_term =  K.sum(((self.h * (1 - self.h))**2) * K.sum(weights**2, axis=1), axis=1)
+  
+      loss = mae + (lm * penalty_term)
+  
+      return loss
