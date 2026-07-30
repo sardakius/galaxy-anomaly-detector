@@ -15,7 +15,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, confu
 from sklearn.model_selection import train_test_split
 
 # Project Code
-from autoencoder import AnomalyDetector
+from autoencoders import RegularizedAnomalyDetector, ConvolutionalAnomalyDetector
 from model_utils import load_images_from_folder, show_images, chi_squared_loss
 
 DATASET = "Raw"
@@ -78,13 +78,22 @@ if __name__ == "__main__":
     # print('\nTest accuracy:', test_acc)
 
     # create the anomaly detector
-    anomaly_detector = AnomalyDetector()
+
+    if MODEL == "Regularized Autoencoder":
+        anomaly_detector = RegularizedAnomalyDetector()
+    elif MODEL == "Convolutional Autoencoder":
+        anomaly_detector = ConvolutionalAnomalyDetector()
+    else:
+        print("No valid model found.")
+        quit()
+
     anomaly_detector.compile(optimizer='adam', loss='mae', metrics=['mae'])
 
     history = anomaly_detector.fit(data_train_normal, data_train_normal,
-            epochs=EPOCHS,
-            batch_size=BATCH_SIZE,
-            validation_data=(data_test, data_test))
+        epochs=EPOCHS,
+        batch_size=BATCH_SIZE,
+        validation_data=(data_test, data_test)
+    )
 
     normal_reconstructions = anomaly_detector.predict(data_train_normal)
     # denormalize data
@@ -134,7 +143,7 @@ if __name__ == "__main__":
     plt.axvline(two_sigma_threshold, color="purple", linestyle="--",
                 label=f"2σ = {two_sigma_threshold:.4f}")
 
-    plt.xlabel("Loss")
+    plt.xlabel("χ² Reconstruction Error")
     plt.ylabel("Number of Images")
     plt.title(f"Distribution of χ² Reconstruction Errors ({DATASET} Dataset, {MODEL})")
     plt.legend()    
@@ -201,27 +210,27 @@ if __name__ == "__main__":
     #         figure_path=FIGURE_PATH
     #     )
     
-    # show_images(
-    #     false_positive_images,
-    #     false_positive_reconstructions,
-    #     false_negative_images,
-    #     false_negative_reconstructions,
-    #     row_names=["FP Images", "FP Reconstructions", "FN Images", "FN Reconstructions"],
-    #     title="False Prediction Image Reconstruction",
-    #     figure_path=FIGURE_PATH,
-    #     random=False
-    # )
+    show_images(
+        false_positive_images,
+        false_positive_reconstructions,
+        false_negative_images,
+        false_negative_reconstructions,
+        row_names=["FP Images", "FP Reconstructions", "FN Images", "FN Reconstructions"],
+        title="False Prediction Image Reconstruction",
+        figure_path=FIGURE_PATH,
+        random=False
+    )
 
-    # show_images(
-    #     true_positive_images,
-    #     true_positive_reconstructions,
-    #     true_negative_images,
-    #     true_negative_reconstructions,
-    #     row_names=["TP Images", "TP Reconstructions", "TN Images", "TN Reconstructions"],
-    #     title="True Prediction Image Reconstruction",
-    #     figure_path=FIGURE_PATH,
-    #     random=False
-    # )
+    show_images(
+        true_positive_images,
+        true_positive_reconstructions,
+        true_negative_images,
+        true_negative_reconstructions,
+        row_names=["TP Images", "TP Reconstructions", "TN Images", "TN Reconstructions"],
+        title="True Prediction Image Reconstruction",
+        figure_path=FIGURE_PATH,
+        random=False
+    )
 
     
 
