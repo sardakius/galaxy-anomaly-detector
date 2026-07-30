@@ -7,12 +7,11 @@ from astropy.visualization import ImageNormalize, PercentileInterval, LinearStre
 from PIL import Image
 import os
 
-folder = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/raw/unknown galaxies"
-half_sigma_folder = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/gaussian0_5/unknown galaxies"
-full_sigma_folder = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/gaussian1/unknown galaxies"
+folder = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/raw/normal galaxies"
+target = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/gaussian 2σ/normal galaxies"
 
 for filename in os.listdir(folder):
-    if filename.lower().endswith(".png") and not os.path.isfile(os.path.join(half_sigma_folder, filename)) and not os.path.isfile(os.path.join(full_sigma_folder, filename)):
+    if filename.lower().endswith(".png") and not os.path.isfile(os.path.join(target, filename)):
         filepath = os.path.join(folder, filename)
         
         img = Image.open(filepath)
@@ -20,14 +19,10 @@ for filename in os.listdir(folder):
 
         img_arr = np.array(img)
 
-        denoised_05_img_arr = ndimage.gaussian_filter(img_arr, sigma=0.5)
-        denoised_05_img = Image.fromarray(denoised_05_img_arr)
+        denoised_img_arr = ndimage.gaussian_filter(img_arr, sigma=2)
+        denoised_img = Image.fromarray(denoised_img_arr)
 
-        denoised_1_img_arr = ndimage.gaussian_filter(img_arr, sigma=1.0)
-        denoised_1_img = Image.fromarray(denoised_1_img_arr)
-
-        denoised_05_img.save(os.path.join(half_sigma_folder, filename))
-        denoised_1_img.save(os.path.join(full_sigma_folder, filename))
+        denoised_img.save(os.path.join(target, filename))
 
         print(f"Processed {filename}")
 
