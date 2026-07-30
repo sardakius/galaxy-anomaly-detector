@@ -18,7 +18,10 @@ from sklearn.model_selection import train_test_split
 from autoencoder import AnomalyDetector
 from model_utils import load_images_from_folder, show_images, chi_squared_loss
 
-DATA_DIR = "/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/raw"
+DATASET = "Raw"
+MODEL = "Regularized Autoencoder"
+
+DATA_DIR = f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/{DATASET.lower().replace('.', '_')}"
 IMG_SIZE = (80, 80)
 
 EPOCHS = 20
@@ -27,7 +30,6 @@ BATCH_SIZE = 100
 BIN_WIDTH = 0.5
 
 FIGURE_PATH = "tuning/second model/"
-
 # code
 if __name__ == "__main__":
     normal_images, normal_labels = load_images_from_folder(
@@ -134,7 +136,7 @@ if __name__ == "__main__":
 
     plt.xlabel("Loss")
     plt.ylabel("Number of Images")
-    plt.title(f"Distribution of Reconstruction Errors (Raw Dataset, {EPOCHS} epochs, {BATCH_SIZE} batch size)")
+    plt.title(f"Distribution of χ² Reconstruction Errors ({DATASET} Dataset, {MODEL})")
     plt.legend()    
     #plt.savefig(f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures/{FIGURE_PATH}reconstruction_error_distribution_raw.png")
 
@@ -175,11 +177,9 @@ if __name__ == "__main__":
     plt.plot(history.history['val_loss'], label='Validation Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
-    plt.title(f'Loss Over Epochs (Raw Dataset, {EPOCHS} Epochs, {BATCH_SIZE} batch size)')
+    plt.title(f'Loss Over Epochs ({DATASET} Dataset, {MODEL})')
     plt.legend()
     #plt.savefig(f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures/{FIGURE_PATH}training_validation_loss_raw.png")
-    plt.show()
-
 
     show_images(
         true_positive_images,
@@ -187,7 +187,7 @@ if __name__ == "__main__":
         true_negative_images,
         false_negative_images,
         row_names=[f"TP: {tp/len(data_test)*100:.2f}%", f"TN: {tn/len(data_test)*100:.2f}%", f"FP: {fp/len(data_test)*100:.2f}%", f"FN: {fn/len(data_test)*100:.2f}%"],
-        title="Anomaly Detection Results (Raw)",
+        title=f"Anomaly Detection Results ({DATASET} Dataset, {MODEL})",
         figure_path=FIGURE_PATH
     )
 
@@ -201,27 +201,27 @@ if __name__ == "__main__":
     #         figure_path=FIGURE_PATH
     #     )
     
-    show_images(
-        false_positive_images,
-        false_positive_reconstructions,
-        false_negative_images,
-        false_negative_reconstructions,
-        row_names=["FP Images", "FP Reconstructions", "FN Images", "FN Reconstructions"],
-        title="False Prediction Image Reconstruction",
-        figure_path=FIGURE_PATH,
-        random=False
-    )
+    # show_images(
+    #     false_positive_images,
+    #     false_positive_reconstructions,
+    #     false_negative_images,
+    #     false_negative_reconstructions,
+    #     row_names=["FP Images", "FP Reconstructions", "FN Images", "FN Reconstructions"],
+    #     title="False Prediction Image Reconstruction",
+    #     figure_path=FIGURE_PATH,
+    #     random=False
+    # )
 
-    show_images(
-        true_positive_images,
-        true_positive_reconstructions,
-        true_negative_images,
-        true_negative_reconstructions,
-        row_names=["TP Images", "TP Reconstructions", "TN Images", "TN Reconstructions"],
-        title="True Prediction Image Reconstruction",
-        figure_path=FIGURE_PATH,
-        random=False
-    )
+    # show_images(
+    #     true_positive_images,
+    #     true_positive_reconstructions,
+    #     true_negative_images,
+    #     true_negative_reconstructions,
+    #     row_names=["TP Images", "TP Reconstructions", "TN Images", "TN Reconstructions"],
+    #     title="True Prediction Image Reconstruction",
+    #     figure_path=FIGURE_PATH,
+    #     random=False
+    # )
 
     
 
