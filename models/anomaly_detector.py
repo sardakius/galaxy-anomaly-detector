@@ -16,20 +16,20 @@ from sklearn.model_selection import train_test_split
 
 # Project Code
 from autoencoders import RegularizedAnomalyDetector, ConvolutionalAnomalyDetector, ContractiveAnomalyDetector
-from model_utils import load_images_from_folder, show_images, chi_squared_loss
+from model_utils import *
 
-DATASET = "Gaussian 2σ"
-MODEL = "Contractive Autoencoder"
+DATASET = "Raw"
+MODEL = "Regularized Autoencoder"
 
 DATA_DIR = f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/{DATASET.lower().replace('.', '_')}"
 IMG_SIZE = (80, 80)
 
-RANDOM_STATE = 374
+RANDOM_STATE = 1738
 
 EPOCHS = 20
 BATCH_SIZE = 100
 
-BIN_WIDTH = 0.5
+BIN_WIDTH = .1
 
 FIGURE_PATH = "tuning/second model/"
 # code
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     data_test_normal = data_test[labels_test[:, 0] == 1]
     data_test_anomalous = data_test[labels_test[:, 1] == 1]
 
-    print("Data has succesfully been loaded!")
+    print(f"Data from the {DATASET} dataset has succesfully been loaded!")
 
     model = tf.keras.Sequential([
         tf.keras.layers.Flatten(),
@@ -101,10 +101,10 @@ if __name__ == "__main__":
     )
 
     normal_reconstructions = anomaly_detector.predict(data_train_normal)
-    # denormalize data
-    data_train_normal *= 255.0
-    normal_reconstructions *= 255.0
-    train_loss = chi_squared_loss(data_train_normal, normal_reconstructions) # denormalize data before sendingit in
+    # denormalie data
+    data_train_normal *= 255
+    normal_reconstructions *= 255
+    train_loss = sigma_clipped_chi_squared_loss(data_train_normal, normal_reconstructions) # denormalize data before sendingit in
     
     anomalous_reconstructions = anomaly_detector.predict(data_train_anomalous)
     # anomalous_train_loss = tf.reduce_mean(
@@ -113,9 +113,9 @@ if __name__ == "__main__":
     # )
 
     # denormalize data
-    data_train_anomalous *= 255.0
-    anomalous_reconstructions *= 255.0
-    anomalous_train_loss = chi_squared_loss(data_train_anomalous, anomalous_reconstructions)
+    data_train_anomalous *= 255
+    anomalous_reconstructions *= 255
+    anomalous_train_loss = sigma_clipped_chi_squared_loss(data_train_anomalous, anomalous_reconstructions)
 
     reconstructions = anomaly_detector.predict(data_test)
     # test_loss = tf.reduce_mean(
@@ -124,11 +124,10 @@ if __name__ == "__main__":
     # )
 
     # denormalize data
-    data_test *= 255.0
-    reconstructions *= 255.0 
-    test_loss = chi_squared_loss(data_test, reconstructions)
+    data_test *= 255
+    reconstructions *= 255
+    test_loss = sigma_clipped_chi_squared_loss(data_test, reconstructions)
 
-    print(len(train_loss), len(anomalous_train_loss), len(test_loss))
     mean = np.mean(train_loss)
     std = np.std(train_loss)
 
@@ -137,27 +136,37 @@ if __name__ == "__main__":
     two_sigma_threshold = mean + 2 * std
 
     plt.figure(figsize=(8,5))
+
+    train_bin_nums = int((train_loss.numpy().max()-train_loss.numpy().min())/BIN_WIDTH)
+    anomalous_bin_nums = int((anomalous_train_loss.numpy().max()-anomalous_train_loss.numpy().min())/BIN_WIDTH)
+    test_bin_nums = int((test_loss.numpy().max()-test_loss.numpy().min())/BIN_WIDTH)
     
-    plt.hist(train_loss, bins=int((train_loss.numpy().max() - train_loss.numpy().min())/BIN_WIDTH), alpha=0.6, label="Normal")
-    plt.hist(anomalous_train_loss, bins=int((anomalous_train_loss.numpy().max() - anomalous_train_loss.numpy().min())/BIN_WIDTH), alpha=0.6, label="Anomaly")
-    #plt.xlim(0, np.mean(anomalous_train_loss) + 2*np.std(anomalous_train_loss)) # keep things relatively in order
-    plt.axvline(half_sigma_threshold, color="orange", linestyle="--",
-                label=f"0.5σ = {half_sigma_threshold:.4f}")
-    plt.axvline(one_sigma_threshold, color="red", linestyle="--",
-                label=f"1σ = {one_sigma_threshold:.4f}")
-    plt.axvline(two_sigma_threshold, color="purple", linestyle="--",
-                label=f"2σ = {two_sigma_threshold:.4f}")
+    # plt.hist(train_loss, bins=train_bin_nums, alpha=0.6, label="Normal")
+    # plt.hist(anomalous_train_loss, bins=anomalous_bin_nums, alpha=0.6, label="Anomaly")
+    # plt.hist(test_loss, bins=test_bin_nums, alpha=0.6, label="Test")
+    # plt.xlim(0, np.mean(anomalous_train_loss) + 2*np.std(anomalous_train_loss)) # keep things relatively in order
+    # plt.axvline(half_sigma_threshold, color="orange", linestyle="--",
+    #             label=f"0.5σ = {half_sigma_threshold:.4f}")
+    # plt.axvline(one_sigma_threshold, color="red", linestyle="--",
+    #             label=f"1σ = {one_sigma_threshold:.4f}")
+    # plt.axvline(two_sigma_threshold, color="purple", linestyle="--",
+    #             label=f"2σ = {two_sigma_threshold:.4f}")
 
-    plt.xlabel("χ² Reconstruction Error")
-    plt.ylabel("Number of Images")
-    plt.title(f"Distribution of χ² Reconstruction Errors ({DATASET} Dataset, {MODEL})")
-    plt.legend()    
-    #plt.savefig(f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures/{FIGURE_PATH}reconstruction_error_distribution_raw.png")
+    # plt.xlabel("χ² Reconstruction Error")
+    # plt.ylabel("Number of Images")
+    # plt.title(f"Distribution of χ² Reconstruction Errors ({DATASET} Dataset, {MODEL})")
+    # plt.legend()  
+    # plt.savefig(f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures/{FIGURE_PATH}reconstruction_error_distribution_raw.png")
 
-    threshold = one_sigma_threshold
+    threshold = two_sigma_threshold
+    print(threshold, test_loss)
     predictions = test_loss > threshold
     y_true = labels_test[:, 1]   # 1 = anomaly, 0 = normal
     y_pred = predictions.numpy()
+
+    for i in range(len(test_loss.numpy())):
+        if y_true[i] == 1 and y_pred[i] == 0:
+            print(test_loss.numpy()[i], threshold)
 
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
 
@@ -186,6 +195,28 @@ if __name__ == "__main__":
     true_positive_reconstructions = reconstructions[tp_indices]
     true_negative_reconstructions = reconstructions[tn_indices]
 
+    # plt.hist(train_loss, bins=train_bin_nums, alpha=0.6, label="Normal")
+    # plt.hist(anomalous_train_loss, bins=anomalous_bin_nums, alpha=0.6, label="Anomaly")
+    # plt.hist(test_loss, bins=test_bin_nums, alpha=0.6, label="Test")
+    plt.hist(test_loss.numpy()[fp_indices], bins=40, alpha=0.6, label="False Positive")
+    plt.hist(test_loss.numpy()[fn_indices], bins=40, alpha=0.6, label="False Negative")
+    plt.hist(test_loss.numpy()[tp_indices], bins=40, alpha=0.6, label="True Positive")
+    plt.hist(test_loss.numpy()[tn_indices], bins=40, alpha=0.6, label="True Negative")
+    plt.xlim(0, np.mean(anomalous_train_loss) + 2*np.std(anomalous_train_loss)) # keep things relatively in order
+    plt.axvline(half_sigma_threshold, color="orange", linestyle="--",
+                label=f"0.5σ = {half_sigma_threshold:.4f}")
+    plt.axvline(one_sigma_threshold, color="red", linestyle="--",
+                label=f"1σ = {one_sigma_threshold:.4f}")
+    plt.axvline(two_sigma_threshold, color="purple", linestyle="--",
+                label=f"2σ = {two_sigma_threshold:.4f}")
+
+    plt.xlabel("χ² Reconstruction Error")
+    plt.ylabel("Number of Images")
+    plt.title(f"Distribution of χ² Reconstruction Errors ({DATASET} Dataset, {MODEL})")
+    plt.legend()  
+
+
+
     plt.figure()
     plt.plot(history.history['loss'], label='Training Loss')
     plt.plot(history.history['val_loss'], label='Validation Loss')
@@ -193,6 +224,7 @@ if __name__ == "__main__":
     plt.ylabel('Loss')
     plt.title(f'Loss Over Epochs ({DATASET} Dataset, {MODEL})')
     plt.legend()
+    plt.show()
     #plt.savefig(f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures/{FIGURE_PATH}training_validation_loss_raw.png")
 
     show_images(
@@ -215,27 +247,60 @@ if __name__ == "__main__":
     #         figure_path=FIGURE_PATH
     #     )
     
-    show_images(
-        false_positive_images,
-        false_positive_reconstructions,
-        false_negative_images,
-        false_negative_reconstructions,
-        row_names=["FP Images", "FP Reconstructions", "FN Images", "FN Reconstructions"],
-        title="False Prediction Image Reconstruction",
-        figure_path=FIGURE_PATH,
-        random=False
-    )
+    # show_images(
+    #     false_positive_images,
+    #     false_positive_reconstructions,
+    #     false_negative_images,
+    #     false_negative_reconstructions,
+    #     row_names=["FP Images", "FP Reconstructions", "FN Images", "FN Reconstructions"],
+    #     title="False Prediction Image Reconstruction",
+    #     figure_path=FIGURE_PATH,
+    #     random=False
+    # )
+
+    # show_images(
+    #     true_positive_images,
+    #     true_positive_reconstructions,
+    #     true_negative_images,
+    #     true_negative_reconstructions,
+    #     row_names=["TP Images", "TP Reconstructions", "TN Images", "TN Reconstructions"],
+    #     title="True Prediction Image Reconstruction",
+    #     figure_path=FIGURE_PATH,
+    #     random=False
+    # )
+
+    # show_images(
+    #     false_negative_images,
+    #     false_negative_reconstructions,
+    #     reconstruction_loss_sc_chi(false_negative_images, false_negative_reconstructions),
+    #     false_negative_images,
+    #     row_names=["FN Images", "FN Reconstructions", "FN Reconstruction Loss", "FN Images"],
+    #     title="Visualizing the FN Reconstruction Loss",
+    #     figure_path=FIGURE_PATH,
+    #     random=False
+    # )
+
+    # show_images(
+    #     false_positive_images,
+    #     false_positive_reconstructions,
+    #     reconstruction_loss_sc_chi(false_positive_images, false_positive_reconstructions),
+    #     false_positive_images,
+    #     row_names=["FP Images", "FP Reconstructions", "FP Reconstruction Loss", "FP Images"],
+    #     title="Visualizing the FP Reconstruction Loss",
+    #     figure_path=FIGURE_PATH,
+    #     random=False
+    # )
 
     show_images(
-        true_positive_images,
-        true_positive_reconstructions,
-        true_negative_images,
-        true_negative_reconstructions,
-        row_names=["TP Images", "TP Reconstructions", "TN Images", "TN Reconstructions"],
-        title="True Prediction Image Reconstruction",
+        reconstruction_loss_sc_chi(true_positive_images, true_positive_reconstructions),
+        reconstruction_loss_sc_chi(false_positive_images, false_positive_reconstructions),
+        reconstruction_loss_sc_chi(true_negative_images, true_negative_reconstructions),
+        reconstruction_loss_sc_chi(false_negative_images, false_negative_reconstructions),
+        row_names=["TP Reconstruction Loss", "FP Reconstruction Loss", "TN Reconstruction Loss", "FN Reconstruction Loss"],
+        title="Visualizing Reconstruction Losses",
         figure_path=FIGURE_PATH,
-        random=False
     )
+
 
     
 

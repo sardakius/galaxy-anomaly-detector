@@ -8,19 +8,19 @@ class RegularizedAnomalyDetector(Model):
     super(RegularizedAnomalyDetector, self).__init__()
     self.encoder = tf.keras.Sequential([
       layers.Flatten(),
+      layers.Dense(1024, activation="relu"),
       layers.Dense(512, activation="relu"),
-      layers.Dense(256, activation="relu"),
-      layers.Dense(16, activation="relu")
+      layers.Dense(128, activation="relu")
     ])
 
     self.decoder = tf.keras.Sequential([
-      layers.Dense(256, activation="relu"),
       layers.Dense(512, activation="relu"),
+      layers.Dense(1024, activation="relu"),
       layers.Dense(80*80*1, activation="sigmoid"),
       layers.Reshape((80, 80, 1))
     ])
 
-    print("Anomaly Detector created!")
+    print("Regularized anomaly detector created!")
 
   def call(self, x):
     encoded = self.encoder(x)
@@ -34,20 +34,18 @@ class ConvolutionalAnomalyDetector(Model):
 
       self.encoder = tf.keras.Sequential([
           layers.InputLayer(shape=(80,80,1)),
-          layers.Conv2D(filters=8, kernel_size=3, strides=2, activation='relu', padding='same'),
-          layers.Conv2D(filters=16, kernel_size=3, strides=2, activation='relu', padding='same'),
           layers.Flatten(),
           layers.Dense(self.latent_dim)
       ])
 
       self.decoder = tf.keras.Sequential([
-          layers.InputLayer(input_shape=(self.latent_dim,)),
-          layers.Dense(20*20*16),
-          layers.Reshape((20, 20, 16)),
-          tf.keras.layers.Conv2DTranspose(filters=16, kernel_size=3, strides=2, padding='same', activation='relu'),
-          tf.keras.layers.Conv2DTranspose(filters=8, kernel_size=3, strides=2, padding='same', activation='relu'),
-          tf.keras.layers.Conv2DTranspose(filters=1, kernel_size=3, strides=1, padding='same', activation='relu'),
+          layers.InputLayer(shape=(self.latent_dim,)),
+          layers.Dense(80*80*1),
+          layers.Reshape((80, 80, 1))
       ])
+
+      print("Convolutional anomaly detector created!")
+
   def call(self, x):
     encoded = self.encoder(x)
     decoded = self.decoder(encoded)
@@ -72,6 +70,8 @@ class ContractiveAnomalyDetector(Model):
       layers.Dense(80*80*1, activation='relu'),
       layers.Reshape((80, 80, 1))
     ])
+
+    print("Contractive anomaly detector created!")
 
   def call(self, x):
     encoded = self.encoder(x)

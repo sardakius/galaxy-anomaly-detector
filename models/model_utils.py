@@ -10,6 +10,7 @@ from PIL import Image
 # Science 
 import numpy as np
 import matplotlib.pyplot as plt
+from astropy.stats import sigma_clipped_stats
 from scipy.stats import chisquare
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, classification_report
 from sklearn.model_selection import train_test_split
@@ -81,6 +82,58 @@ def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''],
     plt.show()
 
 def chi_squared_loss(actual, reconstructions):
-    actual[actual==0] = 1
-    chi_squared = (actual - reconstructions)**2/actual
-    return tf.reduce_sum(chi_squared, axis=(1,2,3))
+    actual_copy = actual.copy()
+    actual_copy[actual_copy==0] = 1
+    
+    chi_squared = tf.abs((actual - reconstructions)**2)/actual_copy
+    return tf.reduce_mean(chi_squared, axis=(1,2,3))
+
+def sigma_clipped_chi_squared_loss(actual, reconstructions):
+    actual_copy = actual.copy()
+    actual_copy[actual_copy==0] = 1
+    
+    # mask the center of the image
+    mask = np.zeros_like(actual, dtype=bool)
+    mask[:, 30:50, 30:50, :] = True
+    
+    bg_mask = np.ones_like(actual, dtype=bool)
+    bg_mask[:, 30:50, 30:50, :] = False
+    
+    bg = actual.copy()
+    bg[bg_mask] *= 0    
+    
+    _, _, noise = sigma_clipped_stats(
+        data=actual,
+        mask=mask
+    )
+
+    uncertainties = np.abs(actual_copy - bg) + noise**2 + 1e-4
+
+    chi_squared = tf.abs((actual - reconstructions - bg)**2)/uncertainties
+
+    return tf.reduce_mean(chi_squared, axis=(1,2,3))
+
+def reconstruction_loss_sc_chi(actual, reconstructions):
+    actual_copy = actual.copy()
+    actual_copy[actual_copy==0] = 1
+    
+    # mask the center of the image
+    mask = np.zeros_like(actual, dtype=bool)
+    mask[:, 30:50, 30:50, :] = True
+
+    bg_mask = np.ones_like(actual, dtype=bool)
+    bg_mask[:, 20:60, 20:60, :] = False
+
+    bg = actual.copy()
+    bg[bg_mask] *= 0.2
+
+    _, _, noise = sigma_clipped_stats(
+        data=actual,
+        mask=mask
+    )
+
+    uncertainties = np.abs(actual_copy - bg) + noise**2 + 1e-4
+
+    chi_squared = tf.abs((actual - reconstructions - bg)**2)/uncertainties
+
+    return chi_squared
