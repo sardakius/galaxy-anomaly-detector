@@ -110,3 +110,9 @@ def gaussian_chi_squared_loss(actual, reconstructions):
     gaussian = create_gaussian(actual.shape)
 
     return tf.reduce_mean(chi_squared*gaussian, axis=(1,2,3))
+
+def secs_to_hms(seconds):
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    seconds = int(seconds % 60)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
