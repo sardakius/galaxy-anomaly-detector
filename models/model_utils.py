@@ -15,7 +15,6 @@ from scipy.stats import chisquare
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, classification_report
 from sklearn.model_selection import train_test_split
 
-IMG_SIZE = (80, 80)
 
 def load_images_from_folder(folder_path, label_value):
     images = []
@@ -23,13 +22,13 @@ def load_images_from_folder(folder_path, label_value):
     image_paths = glob.glob(os.path.join(folder_path, "*.png"))
     for path in image_paths:
         img = Image.open(path).convert('L')
-        img = img.resize(IMG_SIZE)
+        img = img.resize((80, 80))
         img = np.expand_dims(img, axis=-1)
         images.append(np.array(img, dtype=np.float32))
         labels.append(label_value)
     return images, labels
 
-def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''], figure_path=None, random=True):
+def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''], figure_path=None, random=False):
     fig, axs = plt.subplots(4, max_images, figsize=(15, 10))
 
     for i in range(min(max_images, len(tp))):
@@ -78,62 +77,62 @@ def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''],
 
     plt.suptitle(title, fontsize=16)
     plt.tight_layout()
-    # plt.savefig(f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures/{figure_path}{title.replace(' ', '_').replace('(', '').replace(')', '')}.png")
+    plt.savefig(os.path.join(figure_path, f"{title.replace(' ', '_').replace('(', '').replace(')', '')}.png"))
     plt.show()
+
+def loss_function(actual, reconstructions, loss_type):
+    if loss_type == "Mean Absolute Error":
+        return mae(actual, reconstructions)
+    elif loss_type == "χ2 Error":
+        return chi_squared_loss(actual, reconstructions)
+    elif loss_type == "Gaussian χ2 Error":
+        return gaussian_chi_squared_loss(actual, reconstructions)
+    else:
+        raise ValueError(f"Invalid loss type: {loss_type}. Supported types are: 'regular', 'chi_squared', 'sigma_clipped_chi_squared', 'gaussian_chi_squared'.")
+
+def mae(actual, reconstructions):
+    return tf.reduce_mean(tf.abs(actual - reconstructions), axis=(1,2,3))
 
 def chi_squared_loss(actual, reconstructions):
     actual_copy = actual.copy()
     actual_copy[actual_copy==0] = 1
     
     chi_squared = tf.abs((actual - reconstructions)**2)/actual_copy
+
     return tf.reduce_mean(chi_squared, axis=(1,2,3))
 
-def sigma_clipped_chi_squared_loss(actual, reconstructions):
+def create_gaussian(shape, sigma=7.5):
+    grid_size = shape[1]
+    center = (grid_size - 1) / 2.0
+
+    x = np.arange(grid_size)
+    y = np.arange(grid_size)
+    X, Y = np.meshgrid(x, y, indexing='ij')
+    gaussian = np.exp(-((X - center) ** 2 + (Y - center) ** 2) / (2 * sigma ** 2))
+    gaussian = gaussian/gaussian.max() 
+
+    gaussian = gaussian[np.newaxis, :, :, np.newaxis]
+
+    return gaussian
+
+def gaussian_chi_squared_loss(actual, reconstructions):
     actual_copy = actual.copy()
     actual_copy[actual_copy==0] = 1
-    
-    # mask the center of the image
-    mask = np.zeros_like(actual, dtype=bool)
-    mask[:, 30:50, 30:50, :] = True
-    
-    bg_mask = np.ones_like(actual, dtype=bool)
-    bg_mask[:, 30:50, 30:50, :] = False
-    
-    bg = actual.copy()
-    bg[bg_mask] *= 0    
-    
-    _, _, noise = sigma_clipped_stats(
-        data=actual,
-        mask=mask
-    )
 
-    uncertainties = np.abs(actual_copy - bg) + noise**2 + 1e-4
+    chi_squared = tf.abs((actual - reconstructions)**2)/actual_copy
+        
+    # gaussian weighed mask
+    gaussian = create_gaussian(actual.shape)
 
-    chi_squared = tf.abs((actual - reconstructions - bg)**2)/uncertainties
-
-    return tf.reduce_mean(chi_squared, axis=(1,2,3))
+    return tf.reduce_mean(chi_squared*gaussian, axis=(1,2,3))
 
 def reconstruction_loss_sc_chi(actual, reconstructions):
     actual_copy = actual.copy()
     actual_copy[actual_copy==0] = 1
-    
-    # mask the center of the image
-    mask = np.zeros_like(actual, dtype=bool)
-    mask[:, 30:50, 30:50, :] = True
 
-    bg_mask = np.ones_like(actual, dtype=bool)
-    bg_mask[:, 20:60, 20:60, :] = False
+    chi_squared = tf.abs((actual - reconstructions)**2)/actual_copy
+        
+    # gaussian weighed mask
+    gaussian = create_gaussian(actual.shape)
 
-    bg = actual.copy()
-    bg[bg_mask] *= 0.2
-
-    _, _, noise = sigma_clipped_stats(
-        data=actual,
-        mask=mask
-    )
-
-    uncertainties = np.abs(actual_copy - bg) + noise**2 + 1e-4
-
-    chi_squared = tf.abs((actual - reconstructions - bg)**2)/uncertainties
-
-    return chi_squared
+    return chi_squared*gaussian

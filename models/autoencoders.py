@@ -34,13 +34,21 @@ class ConvolutionalAnomalyDetector(Model):
 
       self.encoder = tf.keras.Sequential([
           layers.InputLayer(shape=(80,80,1)),
+          layers.Conv2D(32, kernel_size=3, strides=2, activation='relu', padding='same'),
+          layers.Conv2D(64, kernel_size=3, strides=2, activation='relu', padding='same'),
+          layers.Conv2D(128, kernel_size=3, strides=2, activation='relu', padding='same'),
           layers.Flatten(),
           layers.Dense(self.latent_dim)
       ])
 
       self.decoder = tf.keras.Sequential([
           layers.InputLayer(shape=(self.latent_dim,)),
-          layers.Dense(80*80*1),
+          layers.Dense(10*10*128, activation='relu'),
+          layers.Reshape((10, 10, 128)),
+          layers.Conv2DTranspose(128, kernel_size=3, strides=2, activation='relu', padding='same'),
+          layers.Conv2DTranspose(64, kernel_size=3, strides=2, activation='relu', padding='same'),
+          layers.Conv2DTranspose(32, kernel_size=3, strides=2, activation='relu', padding='same'),
+          layers.Conv2DTranspose(1, kernel_size=3, strides=1, activation='sigmoid', padding='same'),
           layers.Reshape((80, 80, 1))
       ])
 
@@ -57,19 +65,19 @@ class ContractiveAnomalyDetector(Model):
 
     self.encoder = tf.keras.Sequential([
       layers.Flatten(),
-      layers.Dense(64, activation='relu'),
-      layers.Dense(32, activation='relu'),
-      layers.Dense(16, activation='relu')
-    ])
+      layers.Dense(512, activation='relu'),
+      layers.Dense(256, activation='relu'),
+      layers.Dense(64, activation='relu')
+    ], name='encoder')
 
     self.h = 0
 
     self.decoder = tf.keras.Sequential([
-      layers.Dense(32, activation='relu'),
-      layers.Dense(64, activation='relu'),
+      layers.Dense(256, activation='relu'),
+      layers.Dense(512, activation='relu'),
       layers.Dense(80*80*1, activation='relu'),
       layers.Reshape((80, 80, 1))
-    ])
+    ], name='decoder')
 
     print("Contractive anomaly detector created!")
 
@@ -83,7 +91,7 @@ class ContractiveAnomalyDetector(Model):
       lm = 1e-4
       mae = K.mean(K.abs(y_true - y_pred), axis=1)
   
-      weights = self.get_layer('sequential_1').layers[-1].kernel
+      weights = self.get_layer('encoder').layers[-1].kernel
       weights = K.transpose(weights)
   
       penalty_term =  K.sum(((self.h * (1 - self.h))**2) * K.sum(weights**2, axis=1), axis=1)
