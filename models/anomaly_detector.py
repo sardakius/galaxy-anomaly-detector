@@ -158,11 +158,11 @@ def run_anomaly_detection(DATASET, MODEL, LOSS):
     true_negative_reconstructions = reconstructions[tn_indices]
 
     # Plotting Confusion Matrix
-    plt.figure(figsize=(6, 3))
     cm = confusion_matrix(y_true, y_pred)
     disp = ConfusionMatrixDisplay(cm, display_labels=["Normal", "Anomalous"])
     disp.plot(cmap=plt.cm.Blues, values_format='d')
     plt.title(f"Confusion Matrix ({DATASET} Dataset, {MODEL}, {LOSS} Function)", wrap=True)
+    plt.tight_layout()
     plt.savefig(os.path.join(FIGURE_PATH, "confusion_matrix.png"))
 
     # plotting training and validation loss over epochs
@@ -212,6 +212,8 @@ def run_anomaly_detection(DATASET, MODEL, LOSS):
     plt.title(f'Reciever Operating Curve ({DATASET} Dataset, {MODEL}, {LOSS} Function)',wrap=True)
     plt.legend()
     plt.savefig(os.path.join(FIGURE_PATH, "roc_curve.png"))
+
+    plt.close('all')  # Close all figures to free memory
 
     return {
         "dataset": DATASET,

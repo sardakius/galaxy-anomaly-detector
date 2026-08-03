@@ -63,7 +63,7 @@ def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''],
 
     plt.suptitle(title, fontsize=16)
     plt.tight_layout()
-    plt.savefig(os.path.join(figure_path, f"{title.replace(' ', '_').replace('(', '').replace(')', '')}.png"))
+    plt.savefig(os.path.join(figure_path, f"anomaly_detector_results.png"))
 
 def loss_function(actual, reconstructions, loss_type):
     if loss_type == "Mean Absolute Error":
