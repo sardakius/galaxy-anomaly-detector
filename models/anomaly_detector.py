@@ -1,14 +1,13 @@
-# TensorFlow Imports
-import tensorflow as tf
-
 # Image Control
 import os
 import glob
+import csv
 from PIL import Image
 
 # Science 
 import numpy as np
 import matplotlib.pyplot as plt
+import tensorflow as tf
 import torch
 from scipy.stats import chisquare
 from sklearn.metrics import  *
@@ -18,22 +17,18 @@ from sklearn.model_selection import train_test_split
 from autoencoders import RegularizedAnomalyDetector, ConvolutionalAnomalyDetector, ContractiveAnomalyDetector
 from model_utils import *
 
-DATASET = "Raw"
-MODEL = "Regularized Autoencoder"
-LOSS = "Mean Absolute Error"
-
-DATA_DIR = f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/{DATASET.lower().replace('.', '_')}"
-FIGURE_PATH = f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures/{DATASET.lower().replace('.', '_')}/{MODEL.lower().replace(' ', '_')}/{LOSS.lower().replace(' ', '_').replace('χ', 'chi')}"
-
 RANDOM_STATE = 1225 # hahaha deltarune
 
 EPOCHS = 20
 BATCH_SIZE = 100
 
-BIN_WIDTH = 0.05
-
 # code
-if __name__ == "__main__":
+def run_anomaly_detection(DATASET, MODEL, LOSS):
+    print(f"Running anomaly detection on the {DATASET} dataset using the {MODEL} and the {LOSS} loss function...")
+
+    DATA_DIR = f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/galaxy data/{DATASET.lower().replace('.', '_')}"
+    FIGURE_PATH = f"/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures/{DATASET.lower().replace('.', '_')}/{MODEL.lower().replace(' ', '_')}/{LOSS.lower().replace(' ', '_').replace('χ', 'chi')}"
+
     os.makedirs(FIGURE_PATH, exist_ok=True)
 
     normal_images, normal_labels = load_images_from_folder(
@@ -100,7 +95,7 @@ if __name__ == "__main__":
 
     one_sigma_threshold = mean + 1 * std
 
-    # optimize for best f1 score
+    # optimize for best f1 score (check a bunch of thresholds and find the best one)
     thresholds = np.linspace(test_loss.numpy().min(), test_loss.numpy().max(), 10000)
 
     best_f1 = 0
@@ -119,21 +114,18 @@ if __name__ == "__main__":
     print(f"Best threshold for {LOSS}: {best_threshold:.4f} with F1 score: {best_f1:.4f}")
     print(f"1σ threshold for {LOSS}: {one_sigma_threshold:.4f}")
 
+    # results
     predictions = test_loss > best_threshold
-    y_true = labels_test[:, 1]   # 1 = anomaly, 0 = normal
+    y_true = labels_test[:, 1]   #1 = anomaly, 0 = normal
     y_pred = predictions.numpy()
-
-    plt.figure(figsize=(9, 6))
 
     normal_val = test_loss[y_true == 0]
     anomalous_val = test_loss[y_true == 1]
 
-    normal_bin_bums = int((normal_val.numpy().max() - normal_val.numpy().min())/BIN_WIDTH)
-    anomalous_bin_nums = int((anomalous_val.numpy().max() - anomalous_val.numpy().min())/BIN_WIDTH)
-
-    plt.hist(normal_val, bins=normal_bin_bums, alpha=0.6, label="Normal")
-    plt.hist(anomalous_val, bins=anomalous_bin_nums, alpha=0.6, label="Anomalous")
-    plt.xlim(0, min(test_loss.numpy().max(), mean + 2*std) + 0.1)
+    # distribution of errors
+    plt.figure(figsize=(9, 6))
+    plt.hist(normal_val, bins=int(np.sqrt(len(normal_val))), alpha=0.6, label="Normal")
+    plt.hist(anomalous_val, bins=int(np.sqrt(len(anomalous_val))), alpha=0.6, label="Anomalous")
     plt.axvline(one_sigma_threshold, color="red", linestyle="--", label=f"1σ = {one_sigma_threshold:.4f}")
     plt.axvline(best_threshold, color="green", linestyle="--", label=f"Threshold = {best_threshold:.4f}")
     plt.xlabel("Reconstruction Error")   
@@ -166,13 +158,14 @@ if __name__ == "__main__":
     true_negative_reconstructions = reconstructions[tn_indices]
 
     # Plotting Confusion Matrix
-    plt.figure(figsize=(3, 3))
+    plt.figure(figsize=(6, 3))
     cm = confusion_matrix(y_true, y_pred)
-    disp = ConfusionMatrixDisplay(cm, display_labels=["Normal", "Anomalous"]).plot(cmap=plt.cm.Blues, values_format='d')
-    disp.show()
-    disp.title(f"Confusion Matrix ({DATASET} Dataset, {MODEL}, {LOSS} Function)", wrap=True)
-    disp.savefig(os.path.join(FIGURE_PATH, "confusion_matrix.png"))
+    disp = ConfusionMatrixDisplay(cm, display_labels=["Normal", "Anomalous"])
+    disp.plot(cmap=plt.cm.Blues, values_format='d')
+    plt.title(f"Confusion Matrix ({DATASET} Dataset, {MODEL}, {LOSS} Function)", wrap=True)
+    plt.savefig(os.path.join(FIGURE_PATH, "confusion_matrix.png"))
 
+    # plotting training and validation loss over epochs
     plt.figure(figsize=(9, 5))
     plt.plot(history.history['loss'], label='Training Loss')
     plt.plot(history.history['val_loss'], label='Validation Loss')
@@ -180,7 +173,6 @@ if __name__ == "__main__":
     plt.ylabel('Loss (Mean Absolute Error)')
     plt.title(f'Loss Over Epochs ({DATASET}, {MODEL})')
     plt.legend()
-    plt.show()
     plt.savefig(os.path.join(FIGURE_PATH, "training_validation_loss.png"))
 
     # Results
@@ -194,28 +186,17 @@ if __name__ == "__main__":
         figure_path=FIGURE_PATH
     )
 
-    # Visualizing Reconstruction Losses
-    show_images(
-        reconstruction_loss_sc_chi(true_positive_images, true_positive_reconstructions),
-        reconstruction_loss_sc_chi(false_positive_images, false_positive_reconstructions),
-        reconstruction_loss_sc_chi(true_negative_images, true_negative_reconstructions),
-        reconstruction_loss_sc_chi(false_negative_images, false_negative_reconstructions),
-        row_names=["TP Reconstruction Loss", "FP Reconstruction Loss", "TN Reconstruction Loss", "FN Reconstruction Loss"],
-        title=f"Visualizing Reconstruction Losses ({DATASET} Dataset, {MODEL}, {LOSS} Function)",
-        figure_path=FIGURE_PATH,
-    )
-
     # Precision-Recall Curve
     precision, recall, _ = precision_recall_curve(y_true, test_loss)
     pr_auc = auc(recall, precision)
     print(f"Precision-Recall AUC: {pr_auc}")
 
-    plt.figure(figsize=(9, 6))
+    plt.figure(figsize=(8, 8))
     plt.plot(recall, precision, label=f'PR Curve (AUC = {pr_auc:.4f})')
     plt.xlabel('Recall')
     plt.ylabel('Precision')
     plt.title(f'Precision-Recall Curve ({DATASET} Dataset, {MODEL}, {LOSS} Function)', wrap=True)
-    plt.show()
+    plt.legend()
     plt.savefig(os.path.join(FIGURE_PATH, "precision_recall_curve.png"))    
 
     # ROC Curve
@@ -223,15 +204,20 @@ if __name__ == "__main__":
     roc_auc = auc(fpr, tpr)
     print(f"ROC AUC: {roc_auc}")
 
-    plt.figure(figsize=(9, 6))
+    plt.figure(figsize=(8, 8))
     plt.plot(fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})')
     plt.plot([0, 1], [0, 1], 'k--', label='Random Classifier')
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.title(f'Reciever Operating Curve ({DATASET} Dataset, {MODEL}, {LOSS} Function)',wrap=True)
-    plt.show()
+    plt.legend()
     plt.savefig(os.path.join(FIGURE_PATH, "roc_curve.png"))
 
-    # save results to csv file
-    with open('models/output.csv', 'a') as f:
-        f.write(f"{DATASET},{MODEL},{LOSS},{pr_auc:.4f},{roc_auc:.4f},{best_f1:.4f}\n")
+    return {
+        "dataset": DATASET,
+        "model": MODEL,
+        "loss": LOSS,
+        "pr-auc": f"{pr_auc:.4f}",
+        "roc-auc": f"{roc_auc:.4f}",
+        "f1-score": f"{best_f1:.4f}"
+    }

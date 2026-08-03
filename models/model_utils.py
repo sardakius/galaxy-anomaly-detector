@@ -10,7 +10,6 @@ from PIL import Image
 # Science 
 import numpy as np
 import matplotlib.pyplot as plt
-from astropy.stats import sigma_clipped_stats
 from scipy.stats import chisquare
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, classification_report
 from sklearn.model_selection import train_test_split
@@ -31,54 +30,40 @@ def load_images_from_folder(folder_path, label_value):
 def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''], figure_path=None, random=False):
     fig, axs = plt.subplots(4, max_images, figsize=(15, 10))
 
-    for i in range(min(max_images, len(tp))):
-        if i == 0:
-            axs[0, i].set_ylabel(row_names[0], fontsize=12)
+    for i in range(0, 4):
+        axs[i, 0].set_ylabel(row_names[i], fontsize=12)
 
+    for i in range(min(max_images, len(tp))):
         if random:
             img = tp[np.random.randint(0, len(tp))]
         else:
             img = tp[i]
-
         axs[0, i].imshow(img)
 
     for i in range(min(max_images, len(fp))):
-        if i == 0:
-            axs[1, i].set_ylabel(row_names[1], fontsize=12)
-
         if random:
             img = fp[np.random.randint(0, len(fp))]
         else:
             img = fp[i]
-           
         axs[1, i].imshow(img)
 
     for i in range(min(max_images, len(tn))):
-        if i == 0:
-            axs[2, i].set_ylabel(row_names[2], fontsize=12)
-
         if random:
             img = tn[np.random.randint(0, len(tn))]
         else:
             img = tn[i]
-           
         axs[2, i].imshow(img)
 
     for i in range(min(max_images, len(fn))):
-        if i == 0:
-            axs[3, i].set_ylabel(row_names[3], fontsize=12)
-
         if random:
             img = fn[np.random.randint(0, len(fn))]
         else:
-            img = fn[i]
-    
+            img = fn[i] 
         axs[3, i].imshow(img)
 
     plt.suptitle(title, fontsize=16)
     plt.tight_layout()
     plt.savefig(os.path.join(figure_path, f"{title.replace(' ', '_').replace('(', '').replace(')', '')}.png"))
-    plt.show()
 
 def loss_function(actual, reconstructions, loss_type):
     if loss_type == "Mean Absolute Error":
@@ -125,14 +110,3 @@ def gaussian_chi_squared_loss(actual, reconstructions):
     gaussian = create_gaussian(actual.shape)
 
     return tf.reduce_mean(chi_squared*gaussian, axis=(1,2,3))
-
-def reconstruction_loss_sc_chi(actual, reconstructions):
-    actual_copy = actual.copy()
-    actual_copy[actual_copy==0] = 1
-
-    chi_squared = tf.abs((actual - reconstructions)**2)/actual_copy
-        
-    # gaussian weighed mask
-    gaussian = create_gaussian(actual.shape)
-
-    return chi_squared*gaussian
