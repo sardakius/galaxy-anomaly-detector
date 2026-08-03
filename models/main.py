@@ -1,15 +1,15 @@
+from time import time
+start_time = time() # start the timer
+
 import csv
 from anomaly_detector import run_anomaly_detection
 from model_utils import secs_to_hms
-from time import time
 
 DATASETS = ["Raw", "Visu Wavelet", "Bayes Wavelet", "Gaussian 0.5σ", "Gaussian 1σ", "Gaussian 2σ", "Noise2Void"]
 MODELS = ["Regularized Autoencoder", "Convolutional Autoencoder", "Contractive Autoencoder"]
 LOSSES = ["Mean Absolute Error", "χ2 Error", "Gaussian χ2 Error"]
 
-data = []
-start_time = time() # start the timer
-
+data = []  # list to store results for each combination of dataset, model, and loss function
 # run all of the models on all of the datasets with all of the loss functions
 for dataset in DATASETS:
     for model in MODELS:
@@ -25,6 +25,4 @@ with open("/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/model
 
     file.close()
 print("All done! Results written to output.csv")
-
-end_time = time() # end the timer
-print(f"Total time taken: {secs_to_hms(end_time - start_time)}")
+print(f"Total time taken: {secs_to_hms(time() - start_time)}")
