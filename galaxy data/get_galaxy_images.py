@@ -54,7 +54,7 @@ cutouts = []
 while count < 3001:
     try:
         gal = unknown_galaxies[gal_count-1]
-        print(gal['CNN pred'], gal['CNN classification'])
+       # print(gal['CNN pred'], gal['CNN classification'])
 
         ra = gal['right_ascension']
         dec = gal['declination']

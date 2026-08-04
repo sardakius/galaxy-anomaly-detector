@@ -3,3 +3,4 @@ models/__pycache__
 */.DS_Store
 */*/.DS_Store
 denoisers/models
+models/lighting_logs

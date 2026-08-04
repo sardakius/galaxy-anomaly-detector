@@ -1,0 +1,64 @@
+dataset,model,loss,pr-auc,roc-auc,f1-score
+Visu Wavelet,Contractive Autoencoder,Gaussian χ2 Error,0.8991,0.8874,0.8164
+Gaussian 1σ,Convolutional Autoencoder,Gaussian χ2 Error,0.8968,0.8870,0.8242
+Gaussian 0.5σ,Convolutional Autoencoder,Gaussian χ2 Error,0.8906,0.8835,0.8172
+Gaussian 1σ,Contractive Autoencoder,Gaussian χ2 Error,0.8983,0.8804,0.8245
+Bayes Wavelet,Vanilla Autoencoder,Gaussian χ2 Error,0.8951,0.8757,0.8344
+Bayes Wavelet,Vanilla Autoencoder,χ2 Error,0.8768,0.8722,0.8142
+Visu Wavelet,Vanilla Autoencoder,χ2 Error,0.8735,0.8720,0.8091
+Visu Wavelet,Vanilla Autoencoder,Gaussian χ2 Error,0.8862,0.8707,0.8003
+Visu Wavelet,Convolutional Autoencoder,Gaussian χ2 Error,0.8759,0.8706,0.8010
+Gaussian 2σ,Contractive Autoencoder,Gaussian χ2 Error,0.8793,0.8698,0.8165
+Gaussian 2σ,Vanilla Autoencoder,Gaussian χ2 Error,0.8966,0.8612,0.8122
+Gaussian 1σ,Vanilla Autoencoder,Gaussian χ2 Error,0.8777,0.8475,0.7816
+Bayes Wavelet,Convolutional Autoencoder,Gaussian χ2 Error,0.8520,0.8474,0.7890
+Raw,Convolutional Autoencoder,Gaussian χ2 Error,0.8523,0.8411,0.7881
+Raw,Vanilla Autoencoder,χ2 Error,0.8578,0.8386,0.7826
+Gaussian 0.5σ,Contractive Autoencoder,Gaussian χ2 Error,0.8758,0.8376,0.7938
+Gaussian 1σ,Vanilla Autoencoder,χ2 Error,0.8369,0.8374,0.7795
+Gaussian 0.5σ,Vanilla Autoencoder,χ2 Error,0.8512,0.8313,0.7727
+Bayes Wavelet,Contractive Autoencoder,Gaussian χ2 Error,0.8616,0.8240,0.7761
+Gaussian 2σ,Vanilla Autoencoder,Mean Absolute Error,0.8475,0.8210,0.7584
+Noise2Void,Contractive Autoencoder,Gaussian χ2 Error,0.8589,0.8203,0.7689
+Raw,Vanilla Autoencoder,Gaussian χ2 Error,0.8359,0.8156,0.7663
+Gaussian 0.5σ,Vanilla Autoencoder,Gaussian χ2 Error,0.8304,0.8075,0.7528
+Gaussian 2σ,Contractive Autoencoder,χ2 Error,0.7716,0.7971,0.7655
+Noise2Void,Vanilla Autoencoder,Gaussian χ2 Error,0.8306,0.7953,0.7544
+Gaussian 2σ,Vanilla Autoencoder,χ2 Error,0.7999,0.7927,0.7353
+Raw,Contractive Autoencoder,Gaussian χ2 Error,0.8176,0.7924,0.7455
+Noise2Void,Convolutional Autoencoder,Gaussian χ2 Error,0.8056,0.7909,0.7364
+Visu Wavelet,Contractive Autoencoder,χ2 Error,0.7685,0.7905,0.7562
+Visu Wavelet,Vanilla Autoencoder,Mean Absolute Error,0.7898,0.7793,0.7295
+Noise2Void,Vanilla Autoencoder,χ2 Error,0.8027,0.7739,0.7224
+Gaussian 2σ,Convolutional Autoencoder,Gaussian χ2 Error,0.7513,0.7639,0.7342
+Gaussian 2σ,Convolutional Autoencoder,χ2 Error,0.7221,0.7632,0.7327
+Gaussian 1σ,Contractive Autoencoder,χ2 Error,0.7416,0.7543,0.7384
+Visu Wavelet,Convolutional Autoencoder,χ2 Error,0.6865,0.7115,0.7055
+Gaussian 1σ,Vanilla Autoencoder,Mean Absolute Error,0.7131,0.6860,0.6620
+Bayes Wavelet,Contractive Autoencoder,χ2 Error,0.6674,0.6742,0.6889
+Gaussian 0.5σ,Contractive Autoencoder,χ2 Error,0.6578,0.6543,0.6758
+Gaussian 1σ,Convolutional Autoencoder,χ2 Error,0.6337,0.6443,0.6713
+Bayes Wavelet,Convolutional Autoencoder,χ2 Error,0.6429,0.6261,0.6639
+Gaussian 0.5σ,Vanilla Autoencoder,Mean Absolute Error,0.6542,0.6223,0.6620
+Noise2Void,Vanilla Autoencoder,Mean Absolute Error,0.6241,0.6012,0.6620
+Noise2Void,Contractive Autoencoder,χ2 Error,0.6016,0.5952,0.6620
+Bayes Wavelet,Vanilla Autoencoder,Mean Absolute Error,0.6219,0.5946,0.6620
+Gaussian 0.5σ,Convolutional Autoencoder,χ2 Error,0.6093,0.5912,0.6620
+Gaussian 2σ,Contractive Autoencoder,Mean Absolute Error,0.5440,0.5853,0.6715
+Visu Wavelet,Contractive Autoencoder,Mean Absolute Error,0.5327,0.5577,0.6637
+Noise2Void,Convolutional Autoencoder,χ2 Error,0.5391,0.5081,0.6620
+Visu Wavelet,Convolutional Autoencoder,Mean Absolute Error,0.4955,0.4869,0.6631
+Raw,Vanilla Autoencoder,Mean Absolute Error,0.5077,0.4799,0.6620
+Gaussian 2σ,Convolutional Autoencoder,Mean Absolute Error,0.4744,0.4696,0.6620
+Raw,Convolutional Autoencoder,χ2 Error,0.4685,0.4662,0.6620
+Gaussian 1σ,Contractive Autoencoder,Mean Absolute Error,0.4492,0.4659,0.6620
+Raw,Contractive Autoencoder,χ2 Error,0.4575,0.4577,0.6624
+Gaussian 1σ,Convolutional Autoencoder,Mean Absolute Error,0.4220,0.4111,0.6620
+Bayes Wavelet,Contractive Autoencoder,Mean Absolute Error,0.4011,0.3775,0.6620
+Gaussian 0.5σ,Contractive Autoencoder,Mean Absolute Error,0.4010,0.3764,0.6620
+Gaussian 0.5σ,Convolutional Autoencoder,Mean Absolute Error,0.3983,0.3644,0.6620
+Raw,Convolutional Autoencoder,Mean Absolute Error,0.3854,0.3424,0.6620
+Bayes Wavelet,Convolutional Autoencoder,Mean Absolute Error,0.3890,0.3424,0.6620
+Noise2Void,Contractive Autoencoder,Mean Absolute Error,0.3855,0.3395,0.6620
+Noise2Void,Convolutional Autoencoder,Mean Absolute Error,0.3864,0.3378,0.6620
+Raw,Contractive Autoencoder,Mean Absolute Error,0.3791,0.3301,0.6620
