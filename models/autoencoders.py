@@ -3,9 +3,9 @@ from tensorflow.keras import layers, Model, backend as K
 
 from IPython import display
 
-class RegularizedAnomalyDetector(Model):
+class VanillaAnomalyDetector(Model):
   def __init__(self):
-    super(RegularizedAnomalyDetector, self).__init__()
+    super(VanillaAnomalyDetector, self).__init__()
     self.encoder = tf.keras.Sequential([
       layers.Flatten(),
       layers.Dense(1024, activation="relu"),
@@ -20,7 +20,7 @@ class RegularizedAnomalyDetector(Model):
       layers.Reshape((80, 80, 1))
     ])
 
-    print("Regularized anomaly detector created!")
+    print("Vanilla anomaly detector created!")
 
   def call(self, x):
     encoded = self.encoder(x)
@@ -93,9 +93,7 @@ class ContractiveAnomalyDetector(Model):
   
       weights = self.get_layer('encoder').layers[-1].kernel
       weights = K.transpose(weights)
-  
       penalty_term =  K.sum(((self.h * (1 - self.h))**2) * K.sum(weights**2, axis=1), axis=1)
-  
       loss = mae + (lm * penalty_term)
   
       return loss

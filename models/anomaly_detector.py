@@ -14,7 +14,7 @@ from sklearn.metrics import  *
 from sklearn.model_selection import train_test_split
 
 # Project Code
-from autoencoders import RegularizedAnomalyDetector, ConvolutionalAnomalyDetector, ContractiveAnomalyDetector
+from autoencoders import VanillaAnomalyDetector, ConvolutionalAnomalyDetector, ContractiveAnomalyDetector
 from model_utils import *
 
 RANDOM_STATE = 1225 # hahaha deltarune
@@ -58,8 +58,8 @@ def run_anomaly_detection(DATASET, MODEL, LOSS):
     print(f"Data from the {DATASET} dataset has succesfully been loaded!")
 
     # create the anomaly detector
-    if MODEL == "Regularized Autoencoder":
-        anomaly_detector = RegularizedAnomalyDetector()
+    if MODEL == "Vanilla Autoencoder":
+        anomaly_detector = VanillaAnomalyDetector()
         anomaly_detector.compile(optimizer='adam', loss='mae', metrics=['mae'])
     elif MODEL == "Convolutional Autoencoder":
         anomaly_detector = ConvolutionalAnomalyDetector()
