@@ -27,7 +27,7 @@ def load_images_from_folder(folder_path, label_value):
         labels.append(label_value)
     return images, labels
 
-def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''], figure_path=None, random=False):
+def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''], figure_path=None, fig_name="anomaly_detection_results.png", random=False):
     fig, axs = plt.subplots(4, max_images, figsize=(15, 10))
 
     for i in range(0, 4):
@@ -63,7 +63,7 @@ def show_images(tp, fp, tn, fn, title, max_images=7, row_names=['', '', '', ''],
 
     plt.suptitle(title, fontsize=16)
     plt.tight_layout()
-    plt.savefig(os.path.join(figure_path, f"anomaly_detector_results.png"))
+    plt.savefig(os.path.join(figure_path, fig_name))
 
 def loss_function(actual, reconstructions, loss_type):
     if loss_type == "Mean Absolute Error":

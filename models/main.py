@@ -6,7 +6,7 @@ from anomaly_detector import run_anomaly_detection
 from model_utils import secs_to_hms
 
 DATASETS = ["Raw", "Visu Wavelet", "Bayes Wavelet", "Gaussian 0.5σ", "Gaussian 1σ", "Gaussian 2σ", "Noise2Void"]
-MODELS = ["Vanilla Autoencoder"] # , "Convolutional Autoencoder", "Contractive Autoencoder"]
+MODELS = ["Vanilla Autoencoder", "Convolutional Autoencoder", "Contractive Autoencoder"]
 LOSSES = ["Mean Absolute Error", "χ2 Error", "Gaussian χ2 Error"]
 
 data = []  # list to store results for each combination of dataset, model, and loss function

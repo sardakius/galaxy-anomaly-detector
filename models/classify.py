@@ -14,7 +14,7 @@ from sklearn.metrics import  *
 from sklearn.model_selection import train_test_split
 
 # Project Code
-from autoencoders import RegularizedAnomalyDetector, ConvolutionalAnomalyDetector, ContractiveAnomalyDetector
+from autoencoders import VanillaAnomalyDetector, ConvolutionalAnomalyDetector, ContractiveAnomalyDetector
 from model_utils import *
 
 # Zoobot
@@ -51,11 +51,16 @@ if __name__ == "__main__":
         os.path.join(DATA_DIR, 'unknown galaxies'), label_value=-99
     )
 
+    unknown_raw_images, _ = load_images_from_folder(
+        os.path.join(RAW_DATA_DIR, 'unknown galaxies'), label_value=-99
+    )
+
     # normalize between 0-1
     data = np.array(normal_images + anomalous_images)/255.0
     labels_raw = np.array(normal_labels + anomalous_labels)
 
     unknown = np.array(unknown_images)/255.0
+    unknown_raw = np.array(unknown_raw_images)
 
     labels = np.eye(2)[labels_raw]
 
@@ -71,7 +76,7 @@ if __name__ == "__main__":
 
     # create the anomaly detector
     if MODEL == "Regularized Autoencoder":
-        anomaly_detector = RegularizedAnomalyDetector()
+        anomaly_detector = VanillaAnomalyDetector()
         anomaly_detector.compile(optimizer='adam', loss='mae', metrics=['mae'])
     elif MODEL == "Convolutional Autoencoder":
         anomaly_detector = ConvolutionalAnomalyDetector()
@@ -133,109 +138,34 @@ if __name__ == "__main__":
     loss = loss_function(unknown, unknown_reconstructions, LOSS)
     predictions = loss > best_threshold
     my_pred = predictions.numpy()
+
+    show_images(
+        unknown[my_pred==1],
+        unknown[my_pred==1],
+        unknown[my_pred==0],
+        unknown[my_pred==0],
+        title=f"Predictions made by {DATASET}, {MODEL}, {LOSS}",
+        figure_path="/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures",
+        fig_name="visu_wavelet_classifications.png",
+        random=True,
+        row_names=[f"Anomalous ({len(my_pred[my_pred==1])})", f"Anomalous ({len(my_pred[my_pred==1])})", f"Normal ({len(my_pred[my_pred==0])})", f"Normal ({len(my_pred[my_pred==0])})"]
+    )
+
+    show_images(
+        unknown_raw[my_pred==1],
+        unknown_raw[my_pred==1],
+        unknown_raw[my_pred==0],
+        unknown_raw[my_pred==0],
+        title=f"Predictions made by {DATASET}, {MODEL}, {LOSS}",
+        figure_path="/Users/ksarthak/Documents/my files/galactic anomaly autoencoder/figures",
+        fig_name="raw_classifications.png",
+        random=True,
+        row_names=[f"Anomalous ({len(my_pred[my_pred==1])})", f"Anomalous ({len(my_pred[my_pred==1])})", f"Normal ({len(my_pred[my_pred==0])})", f"Normal ({len(my_pred[my_pred==0])})"]
+    )
     
+    
+
     print("My model has made its predictions!")
-
-    # zoobot
-    NORMAL_DIR = f"{RAW_DATA_DIR}/normal galaxies"
-    ANOMALOUS_DIR = f"{RAW_DATA_DIR}/anomalous galaxies"
-    UNKNOWN_DIR = f"{RAW_DATA_DIR}/unknown galaxies"
-
-    class GalaxyDataset(Dataset):
-        def __init__(self, folder, label=None):
-            self.files = [
-                os.path.join(folder, f)
-                for f in os.listdir(folder)
-                if f.endswith((".png", ".jpg", ".jpeg"))
-            ]
-            self.label = label
-
-        def __len__(self):
-            return len(self.files)
-
-        def __getitem__(self, i):
-            img = Image.open(self.files[i]).convert("RGB")
-            img = torch.tensor(np.array(img)/255.).permute(2,0,1).float()
-
-            if self.label is not None:
-                return img, self.label
-
-            return img, self.files[i]
-    train = torch.utils.data.ConcatDataset([
-        GalaxyDataset(f"{RAW_DATA_DIR}/normal galaxies", 0),
-        GalaxyDataset(f"{RAW_DATA_DIR}/anomalous galaxies", 1)
-    ])
-
-
-    loader = DataLoader(train, batch_size=32, shuffle=True)
-
-
-    # ---------------- Model ----------------
-
-    model = FinetuneableZoobotClassifier(
-        name="hf_hub:mwalmsley/zoobot-encoder-convnext_nano",
-        num_classes=2,
-        training_mode="head_only",
-        learning_rate=1e-4
-    )
-
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device)
-
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
-    loss_fn = torch.nn.CrossEntropyLoss()
-
-
-    # ---------------- Training ----------------
-
-    for epoch in range(5):
-        model.train()
-
-        for x, y in loader:
-            x, y = x.to(device), torch.tensor(y).to(device)
-
-            optimizer.zero_grad()
-
-            loss = loss_fn(model(x), y)
-
-            loss.backward()
-            optimizer.step()
-
-        print("epoch", epoch, "loss", loss.item())
-
-
-    # ---------------- Predict unknown galaxies ----------------
-
-    unknown = DataLoader(
-        GalaxyDataset(f"{RAW_DATA_DIR}/unknown galaxies"),
-        batch_size=32
-    )
-
-    zoobot_pred = []
-
-    model.eval()
-
-    with torch.no_grad():
-        for x, files in unknown:
-            x = x.to(device)
-
-            output = model(x)
-
-            # converts probabilities -> 0/1
-            pred = torch.argmax(output, dim=1)
-
-            zoobot_pred.extend(pred.cpu().numpy())
-
-    # lets show it
-    cm = confusion_matrix(my_pred, zoobot_pred)
-    disp = ConfusionMatrixDisplay(cm, display_labels=["Normal", "Anomalous"])
-    disp.plot(cmap=plt.cm.Blues, values_format='d')
-    plt.title(f"Confusion Matrix", wrap=True)
-    plt.xlabel("Zoobot")
-    plt.ylabel(f"{DATASET}, {MODEL}, {LOSS}")
-    plt.tight_layout()
-    plt.show()
 
 
     

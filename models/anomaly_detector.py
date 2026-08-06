@@ -122,17 +122,17 @@ def run_anomaly_detection(DATASET, MODEL, LOSS):
     normal_val = test_loss[y_true == 0]
     anomalous_val = test_loss[y_true == 1]
 
-    # distribution of errors
-    plt.figure(figsize=(9, 6))
-    plt.hist(normal_val, bins=int(np.sqrt(len(normal_val))), alpha=0.6, label="Normal")
-    plt.hist(anomalous_val, bins=int(np.sqrt(len(anomalous_val))), alpha=0.6, label="Anomalous")
-    plt.axvline(one_sigma_threshold, color="red", linestyle="--", label=f"1σ = {one_sigma_threshold:.4f}")
-    plt.axvline(best_threshold, color="green", linestyle="--", label=f"Threshold = {best_threshold:.4f}")
-    plt.xlabel("Reconstruction Error")   
-    plt.ylabel("Number of Images")
-    plt.title(f"Distribution of Reconstruction Errors ({DATASET}, {MODEL}, {LOSS})", wrap=True)
-    plt.legend()  
-    plt.savefig(os.path.join(FIGURE_PATH, "reconstruction_error_distribution.png"))
+    # # distribution of errors
+    # plt.figure(figsize=(9, 6))
+    # plt.hist(normal_val, bins=int(np.sqrt(len(normal_val))), alpha=0.6, label="Normal")
+    # plt.hist(anomalous_val, bins=int(np.sqrt(len(anomalous_val))), alpha=0.6, label="Anomalous")
+    # plt.axvline(one_sigma_threshold, color="red", linestyle="--", label=f"1σ = {one_sigma_threshold:.4f}")
+    # plt.axvline(best_threshold, color="green", linestyle="--", label=f"Threshold = {best_threshold:.4f}")
+    # plt.xlabel("Reconstruction Error")   
+    # plt.ylabel("Number of Images")
+    # plt.title(f"Distribution of Reconstruction Errors ({DATASET}, {MODEL}, {LOSS})", wrap=True)
+    # plt.legend()  
+    # plt.savefig(os.path.join(FIGURE_PATH, "reconstruction_error_distribution.png"))
 
     # confusing the matrix
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
@@ -157,61 +157,62 @@ def run_anomaly_detection(DATASET, MODEL, LOSS):
     true_positive_reconstructions = reconstructions[tp_indices]
     true_negative_reconstructions = reconstructions[tn_indices]
 
-    # Plotting Confusion Matrix
-    cm = confusion_matrix(y_true, y_pred)
-    disp = ConfusionMatrixDisplay(cm, display_labels=["Normal", "Anomalous"])
-    disp.plot(cmap=plt.cm.Blues, values_format='d')
-    plt.title(f"Confusion Matrix ({DATASET} Dataset, {MODEL}, {LOSS} Function)", wrap=True)
-    plt.tight_layout()
-    plt.savefig(os.path.join(FIGURE_PATH, "confusion_matrix.png"))
+    # # Plotting Confusion Matrix
+    # cm = confusion_matrix(y_true, y_pred)
+    # disp = ConfusionMatrixDisplay(cm, display_labels=["Normal", "Anomalous"])
+    # disp.plot(cmap=plt.cm.Blues, values_format='d')
+    # plt.title(f"Confusion Matrix ({DATASET} Dataset, {MODEL}, {LOSS} Function)", wrap=True)
+    # plt.tight_layout()
+    # plt.savefig(os.path.join(FIGURE_PATH, "confusion_matrix.png"))
 
-    # plotting training and validation loss over epochs
-    plt.figure(figsize=(9, 5))
-    plt.plot(history.history['loss'], label='Training Loss')
-    plt.plot(history.history['val_loss'], label='Validation Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss (Mean Absolute Error)')
-    plt.title(f'Loss Over Epochs ({DATASET}, {MODEL})')
-    plt.legend()
-    plt.savefig(os.path.join(FIGURE_PATH, "training_validation_loss.png"))
+    # # plotting training and validation loss over epochs
+    # plt.figure(figsize=(9, 5))
+    # plt.plot(history.history['loss'], label='Training Loss')
+    # plt.plot(history.history['val_loss'], label='Validation Loss')
+    # plt.xlabel('Epoch')
+    # plt.ylabel('Loss (Mean Absolute Error)')
+    # plt.title(f'Loss Over Epochs ({DATASET}, {MODEL})')
+    # plt.legend()
+    # plt.savefig(os.path.join(FIGURE_PATH, "training_validation_loss.png"))
 
     # Results
     show_images(
         true_positive_images,
-        false_positive_images,
         true_negative_images,
+        false_positive_images,
         false_negative_images,
         row_names=[f"TP: {tp/len(data_test)*100:.2f}%", f"TN: {tn/len(data_test)*100:.2f}%", f"FP: {fp/len(data_test)*100:.2f}%", f"FN: {fn/len(data_test)*100:.2f}%"],
         title=f"Anomaly Detection Results ({DATASET} Dataset, {MODEL}, {LOSS} Function)",
+        fig_name='anomaly_detector_Results.png',
         figure_path=FIGURE_PATH
     )
 
-    # Precision-Recall Curve
+    # # Precision-Recall Curve
     precision, recall, _ = precision_recall_curve(y_true, test_loss)
     pr_auc = auc(recall, precision)
     print(f"Precision-Recall AUC: {pr_auc}")
 
-    plt.figure(figsize=(8, 8))
-    plt.plot(recall, precision, label=f'PR Curve (AUC = {pr_auc:.4f})')
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.title(f'Precision-Recall Curve ({DATASET} Dataset, {MODEL}, {LOSS} Function)', wrap=True)
-    plt.legend()
-    plt.savefig(os.path.join(FIGURE_PATH, "precision_recall_curve.png"))    
+    # plt.figure(figsize=(8, 8))
+    # plt.plot(recall, precision, label=f'PR Curve (AUC = {pr_auc:.4f})')
+    # plt.xlabel('Recall')
+    # plt.ylabel('Precision')
+    # plt.title(f'Precision-Recall Curve ({DATASET} Dataset, {MODEL}, {LOSS} Function)', wrap=True)
+    # plt.legend()
+    # plt.savefig(os.path.join(FIGURE_PATH, "precision_recall_curve.png"))    
 
-    # ROC Curve
+    # # ROC Curve
     fpr, tpr, _ = roc_curve(y_true, test_loss)
     roc_auc = auc(fpr, tpr)
     print(f"ROC AUC: {roc_auc}")
 
-    plt.figure(figsize=(8, 8))
-    plt.plot(fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})')
-    plt.plot([0, 1], [0, 1], 'k--', label='Random Classifier')
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title(f'Reciever Operating Curve ({DATASET} Dataset, {MODEL}, {LOSS} Function)',wrap=True)
-    plt.legend()
-    plt.savefig(os.path.join(FIGURE_PATH, "roc_curve.png"))
+    # plt.figure(figsize=(8, 8))
+    # plt.plot(fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})')
+    # plt.plot([0, 1], [0, 1], 'k--', label='Random Classifier')
+    # plt.xlabel('False Positive Rate')
+    # plt.ylabel('True Positive Rate')
+    # plt.title(f'Reciever Operating Curve ({DATASET} Dataset, {MODEL}, {LOSS} Function)',wrap=True)
+    # plt.legend()
+    # plt.savefig(os.path.join(FIGURE_PATH, "roc_curve.png"))
 
     plt.close('all')  # Close all figures to free memory
 
