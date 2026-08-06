@@ -31,7 +31,7 @@ normal_mask = [
 ][0]
 anomalous_mask = [
     (gal_merger['CNN classification'] == 1) &
-    (gal_merger['CNN pred'] > 0.855) # different threshold for anomalous galaxies to match the f_merg
+    (gal_merger['CNN pred'] > 0.855) 
 ][0]
 
 unknown_mask = [
@@ -53,7 +53,7 @@ cutouts = []
 
 while count < 3001:
     try:
-        gal = unknown_galaxies[gal_count-1]
+        gal = unknown_galaxies_galaxies[gal_count-1]
        # print(gal['CNN pred'], gal['CNN classification'])
 
         ra = gal['right_ascension']
@@ -85,7 +85,7 @@ while count < 3001:
             fig.add_axes(ax)
             
             plt.imshow(image_data, cmap='gray', origin='lower', norm=ImageNormalize(image_data, interval=PercentileInterval(98), stretch=LinearStretch()))
-            plt.savefig(f'raw/unknown galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png', bbox_inches='tight', pad_inches=0, dpi=300)
+            plt.savefig(f"raw/unknown galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png!", bbox_inches='tight', pad_inches=0, dpi=300)
             plt.close()
 
             print(f"Galaxy #{count} saved to raw/unknown galaxies/galaxy_{str(ra).replace(".", "_")}_{str(dec).replace(".", "_")}.png!")
